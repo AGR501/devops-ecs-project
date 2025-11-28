@@ -1,0 +1,41 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::836347553182:role/github-actions-ecs-deploy-role
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, Tag & Push Docker image
+        run: |
+          docker build -t myapp .
+          docker tag myapp:latest 836347553182.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
+          docker push 836347553182.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ecs-task.json
+          service: my-ecs-service
+          cluster: my-ecs-cluster
+          wait-for-service-stability: true
+
