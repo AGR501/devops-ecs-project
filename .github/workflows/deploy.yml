@@ -27,7 +27,6 @@ jobs:
 
       - name: Build, Tag & Push Docker image
         run: |
-          ls -la   # <- Ye line add ki gayi hai
           docker build -t myapp .
           docker tag myapp:latest 836347553182.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
           docker push 836347553182.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
